@@ -1,0 +1,6 @@
+[submodule "MyUser-WebApi"]
+	path = MyUser-WebApi
+	url = https://github.com/AlexandreSCorreia/MyUser-WebApi
+[submodule "MyUser-WebApp"]
+	path = MyUser-WebApp
+	url = https://github.com/AlexandreSCorreia/MyUser-WebApp
