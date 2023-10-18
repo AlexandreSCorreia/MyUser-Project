@@ -1,0 +1,71 @@
+version: '3.4'
+
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    ports:
+      - 1450:1433
+    container_name: sqlserver-container
+    volumes:
+      - c:\dados\volumes\mssql:/var/opt/mssql/data
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Numsey#2022
+      - TZ=America/Sao_Paulo
+    restart: always
+
+  api01: &api
+    build: ./MyUser-WebApi
+    restart: always
+    depends_on:
+      - mssql
+    environment:
+      - TZ=America/Sao_Paulo
+      - DB_CONNECTION=Server=mssql;Initial Catalog=MyApi;MultipleActiveResultSets=true;User ID=SA;Password=Numsey#2022
+      - DATABASE=SQLSERVER
+      - MIGRATION=APLICAR
+    ports:
+      - "8081:80"
+    expose:
+      - "80"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.568"
+          memory: "1.0GB"
+
+  api02:
+    <<: *api
+    ports:
+      - "8082:80"
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./Servicos-Nginx:/etc/nginx/conf.d
+    restart: always
+    depends_on:
+      - api01
+      - api02
+    ports:
+      - "9999:9999"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.2"
+          memory: "0.1GB"
+
+  front:
+    build: ./MyUser-WebApp
+    ports: 
+      - 4200:80
+    environment:
+      API_URL: "http://nginx:9999"
+    restart: always
+    depends_on:
+      - nginx
+
+networks:
+  default:
+    driver: bridge
+    name: myUserNetwork
